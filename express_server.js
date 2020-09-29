@@ -63,11 +63,24 @@ app.post("/urls", (req, res) => {
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL
   delete urlDatabase[shortURL];
-  
+
+  res.redirect("/urls")
+})
+
+//what happens when you click on the edit button 
+app.post("/urls/:shortURL", (req, res) => {
+  console.log("Post request fired")
+  const longURL = req.body.newURL
+  const shortURL = req.params.shortURL
+  console.log(longURL)
+  console.log(shortURL)
+
+  urlDatabase[shortURL]=longURL
+
   res.redirect("/urls")
 })
 
 //setting up the listener 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
-});
+}); 
