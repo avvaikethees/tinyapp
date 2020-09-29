@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/avvaikethees/tinyapp/issues"
   },
-  "homepage": "https://github.com/avvaikethees/tinyapp#readme"
+  "homepage": "https://github.com/avvaikethees/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
