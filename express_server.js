@@ -33,16 +33,17 @@ app.get('/hello', (req, res) => {
 })
 
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render('urls_index', templateVars);
 })
 
 app.get('/urls/new', (req, res) => {
-  res.render('urls_new');
+  const templateVars = {urls: urlDatabase, username: req.cookies["username"]}
+  res.render('urls_new', templateVars);
 })
 
 app.get('/urls/:shortURL', (req, res)=> {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["username"]};
   console.log(templateVars)
   res.render("urls_show", templateVars);
 })
@@ -83,14 +84,18 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect("/urls")
 })
 
-
+// What happens when you click on the login button
 app.post('/login', (req, res) => {
   res.cookie("username", req.body["username"])
-  console.log(req.body)
+  //console.log(req.body)
   res.redirect("/urls")
 })
 
-
+// What happens when you click on the logout button 
+app.post('/logout', (req, res) => {
+  res.clearCookie("username")
+  res.redirect("/urls")
+})
 
 //setting up the listener 
 app.listen(PORT, () => {

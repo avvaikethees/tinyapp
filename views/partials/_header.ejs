@@ -11,11 +11,22 @@
       </div>
     </div>
 
+    <% if (username) { %>
+      <p> Signed in as <%= username %></p>
+      <form action="/logout" method="POST">
+      <button type="submit" class ="btn btn-primary">Log Out</button>
+      </form>
+    <% } else { %>
+
     <form  action="/login" method="POST">
         <label for="longURL">Enter your username</label>
         <input class="form-control" type="text" name="username">
         <button type="submit" class="btn btn-primary">Sign In</button>
     </form>
+
+  <% } %>
+
+
 
   </nav>
 </header>
