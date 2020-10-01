@@ -2,17 +2,17 @@ const express = require ('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 
-// Server Setup --------------------------------------
+// SERVER SETUP --------------------------------------
 const PORT = 8080; // defualt port 8080
 const app = express();
 app.set("view engine", "ejs");
 
 
-//Middleware --------------------------------------
+//MIDDLEWARE --------------------------------------
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(cookieParser())
 
-//Data --------------------------------------
+//DATA --------------------------------------
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -30,6 +30,8 @@ const usersDatabase = {
     password: "dishwasher-funk"
   }
 }
+
+// FUNCTIONS -------------------------------------------------------
 
 //function to generate a random alphanumeric 6 character string 
 function generateRandomString () {
