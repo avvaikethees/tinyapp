@@ -14,8 +14,8 @@ app.use(cookieParser())
 
 //DATA --------------------------------------
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },
+  "9sm5xK": { longURL:  "http://www.google.com", userID: "user2RandomID" },
 };
 
 const usersDatabase = {
@@ -67,6 +67,19 @@ const passwordCheck = (usersDatabase, newPassword) => {
   }
   };
 
+  //function to grab the urls from userID
+
+  const urlsForUser = (urlDatabase, id) => {
+    let result = {}; 
+
+    for (const url in urlDatabase) {
+      if (urlDatabase[url].userID === id) {
+      result[url] = urlDatabase[url]
+    }
+  }
+  
+  return result;
+}
 // ROUTES --------------------------------------
 
 //View -------------------------------------
@@ -84,15 +97,20 @@ app.get('/hello', (req, res) => {
 
 app.get('/urls', (req, res) => {
   const userID = req.cookies["user_id"]
-  const templateVars = { urls: urlDatabase, userID: req.cookies["user_id"], user:usersDatabase[userID]};
+  const usersURLs = urlsForUser(urlDatabase, userID)
+  const templateVars = { urls: usersURLs, userID: req.cookies["user_id"], user:usersDatabase[userID]};
   res.render('urls_index', templateVars);
 })
 
 app.get('/urls/new', (req, res) => {
-  const userID = req.cookies["user_id"]
+  let userID = req.cookies["user_id"]
   const templateVars = {urls: urlDatabase, userID: req.cookies["user_id"], user:usersDatabase[userID]}
-  res.render('urls_new', templateVars);
-})
+  if (userID) {
+    res.render('urls_new', templateVars);
+ } else {
+   res.status(403).redirect("/login");
+ }
+});
 
 app.get('/register', (req, res) => {
   const templateVars = {userID: null}
@@ -121,7 +139,8 @@ app.get('/u/:shortURL', (req, res) => {
 app.post("/urls", (req, res) => {
   const longBodyURL = req.body.longURL;
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = longBodyURL;
+  const userID = req.cookies["user_id"]
+  urlDatabase[shortURL] = { longURL: longBodyURL, userID: userID };
   //console.log(req.body);
   res.redirect(`/urls/${shortURL}`)
 })
@@ -137,12 +156,12 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // ** what happens when you click on the edit button  **
 app.post("/urls/:shortURL", (req, res) => {
   console.log("Post request fired")
-  const longURL = req.body.newURL
+  const longBodyURL = req.body.newURL
   const shortURL = req.params.shortURL
-  console.log(longURL)
+  console.log(longBodyURL)
   console.log(shortURL)
 
-  urlDatabase[shortURL]=longURL
+  urlDatabase[shortURL].longURL= longBodyURL;
 
   res.redirect("/urls")
 })
