@@ -17,12 +17,13 @@
       <button type="submit" class ="btn btn-primary">Log Out</button>
       </form>
     <% } else { %>
-
-    <form  action="/login" method="POST">
-        <label for="longURL">Enter your username</label>
-        <input class="form-control" type="text" name="username">
-        <button type="submit" class="btn btn-primary">Sign In</button>
-    </form>
+        <form action="/login" method="GET">
+          <button type="submit" class="btn btn-primary">Log In</button>
+        </form>
+          
+        <form action="/register" method="GET">
+          <button type="submit" class="btn btn-primary">Register</button>
+        </form>
 
   <% } %>
 

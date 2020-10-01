@@ -72,8 +72,14 @@ app.get('/urls/new', (req, res) => {
   res.render('urls_new', templateVars);
 })
 
-app.get('/urls/register', (req, res) => {
-  res.render('urls_register')
+app.get('/register', (req, res) => {
+  const templateVars = {userID: null}
+  res.render('urls_register', templateVars)
+})
+
+app.get('/login', (req, res) => {
+  const templateVars = {userID: null}
+  res.render('urls_login', templateVars)
 })
 
 app.get('/urls/:shortURL', (req, res)=> {
