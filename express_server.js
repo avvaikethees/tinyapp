@@ -80,6 +80,7 @@ const passwordCheck = (usersDatabase, newPassword) => {
   
   return result;
 }
+
 // ROUTES --------------------------------------
 
 //View -------------------------------------
@@ -145,8 +146,13 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`)
 })
 
-//what happens after you click on that delete button 
+//** what happens after you click on that delete button **
 app.post("/urls/:shortURL/delete", (req, res) => {
+
+  if (!req.cookies["user_id"]) {
+    return res.status(404).send("Need to be logged in");
+  }
+
   const shortURL = req.params.shortURL
   delete urlDatabase[shortURL];
 
@@ -158,6 +164,12 @@ app.post("/urls/:shortURL", (req, res) => {
   console.log("Post request fired")
   const longBodyURL = req.body.newURL
   const shortURL = req.params.shortURL
+  const userID = req.cookies["user_id"]
+  const usersURLs = urlsForUser(urlDatabase, userID );
+
+  if (!(shortURL in usersURLs)) {
+    return res.status(404).send("You need to be logged in to edit");
+  }
   console.log(longBodyURL)
   console.log(shortURL)
 
