@@ -46,6 +46,25 @@ const emailAlreadyExists = (usersDatabase, newEmail) => {
   return false; 
 };
 
+//function to check if password is correct
+const passwordCheck = (usersDatabase, newPassword) => {
+  for (key in usersDatabase) {
+    if(usersDatabase[key]["password"]=== newPassword) {
+      return true
+    }
+  }
+  return false
+};
+
+  //function to grab the userID for an existing email 
+  const getUserByEmail = (usersDatabase, logInEmail)=> {
+    for (key in usersDatabase){
+    if (usersDatabase[key]["email"] === logInEmail) {
+      return key
+    }
+  }
+  };
+
 // Routes --------------------------------------
 //View -------------------------------------
 app.get('/', (req, res) => {
@@ -129,12 +148,27 @@ app.post("/urls/:shortURL", (req, res) => {
 app.post('/login', (req, res) => {
   //res.cookie("username", req.body["username"])
   //console.log(req.body)
-  res.redirect("/urls")
+  let email = req.body.email
+  let password = req.body.password
+
+  if (emailAlreadyExists(usersDatabase, email)) {
+    if (passwordCheck(usersDatabase, password)) {
+      let getuserID = getUserByEmail(usersDatabase, email)
+      res.cookie("user_id", getuserID)
+      res.redirect("/urls")
+    }else {
+      res.status(403).json({message: "Incorrect password"})
+    }
+  
+  //if email is not part of the database
+  } else if (!emailAlreadyExists(usersDatabase, email)) {
+    res.status(403).json({message: "That email does not match our records"})
+  }
 })
 
 // ** What happens when you click on the logout button **
 app.post('/logout', (req, res) => {
-  //res.clearCookie("username")
+  res.clearCookie("user_id")
   res.redirect("/urls")
 })
 
@@ -158,7 +192,6 @@ app.post('/register', (req,res)=>{
       email: email,
       password: password,
     }
-  
 
   //this adds the new user to the global users object 
   usersDatabase[userID] = storeuser 
