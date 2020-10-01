@@ -72,9 +72,9 @@ const passwordCheck = (usersDatabase, newPassword) => {
   const urlsForUser = (urlDatabase, id) => {
     let result = {}; 
 
-    for (const url in urlDatabase) {
-      if (urlDatabase[url].userID === id) {
-      result[url] = urlDatabase[url]
+    for (let shortUrl in urlDatabase) {
+      if (urlDatabase[shortUrl].userID === id) {
+      result[shortUrl] = urlDatabase[shortUrl]
     }
   }
   
@@ -125,8 +125,8 @@ app.get('/login', (req, res) => {
 
 app.get('/urls/:shortURL', (req, res)=> {
   const userID = req.cookies["user_id"]
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], userID: req.cookies["user_id"], user: usersDatabase[userID]};
-  console.log(templateVars)
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userID: req.cookies["user_id"], user: usersDatabase[userID]};
+  //console.log(templateVars)
   res.render("urls_show", templateVars);
 })
 
@@ -136,13 +136,14 @@ app.get('/u/:shortURL', (req, res) => {
   res.redirect(longURL)
 })
 
-// Action ----------------------------------------------------
+// ACTION ----------------------------------------------------
 app.post("/urls", (req, res) => {
   const longBodyURL = req.body.longURL;
   const shortURL = generateRandomString();
   const userID = req.cookies["user_id"]
   urlDatabase[shortURL] = { longURL: longBodyURL, userID: userID };
   //console.log(req.body);
+  console.log(urlDatabase)
   res.redirect(`/urls/${shortURL}`)
 })
 
