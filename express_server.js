@@ -67,7 +67,8 @@ const passwordCheck = (usersDatabase, newPassword) => {
   }
   };
 
-// Routes --------------------------------------
+// ROUTES --------------------------------------
+
 //View -------------------------------------
 app.get('/', (req, res) => {
   res.send("Hello")
