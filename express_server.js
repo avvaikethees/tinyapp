@@ -1,6 +1,8 @@
 const express = require ('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
+
 
 // SERVER SETUP --------------------------------------
 const PORT = 8080; // defualt port 8080
@@ -46,16 +48,6 @@ const emailAlreadyExists = (usersDatabase, newEmail) => {
     }
   }
   return false; 
-};
-
-//function to check if password is correct
-const passwordCheck = (usersDatabase, newPassword) => {
-  for (key in usersDatabase) {
-    if(usersDatabase[key]["password"]=== newPassword) {
-      return true
-    }
-  }
-  return false
 };
 
   //function to grab the userID for an existing email 
@@ -183,20 +175,23 @@ app.post("/urls/:shortURL", (req, res) => {
 app.post('/login', (req, res) => {
   //res.cookie("username", req.body["username"])
   //console.log(req.body)
-  let email = req.body.email
-  let password = req.body.password
+  const email = req.body.email
+  const password = req.body.password
+ 
+
 
   if (emailAlreadyExists(usersDatabase, email)) {
-    if (passwordCheck(usersDatabase, password)) {
-      let getuserID = getUserByEmail(usersDatabase, email)
-      res.cookie("user_id", getuserID)
+    const user = getUserByEmail(usersDatabase, email)  // returns the user info (the key)
+
+    if (bcrypt.compareSync(password, usersDatabase[user].password)) {
+      //let getuserID = getUserByEmail(usersDatabase, email)
+      res.cookie("user_id", user)
       res.redirect("/urls")
-    }else {
+    } else {
       res.status(403).json({message: "Incorrect password"})
-    }
-  
-  //if email is not part of the database
-  } else if (!emailAlreadyExists(usersDatabase, email)) {
+    } 
+    
+  }else if (!emailAlreadyExists(usersDatabase, email)) {
     res.status(403).json({message: "That email does not match our records"})
   }
 })
@@ -210,8 +205,10 @@ app.post('/logout', (req, res) => {
 // ** What happens after the registration form **
 app.post('/register', (req,res)=>{
 
-  let email = req.body.email;
-  let password = req.body.password;
+  const email = req.body.email;
+  const password = req.body.password;
+  
+  const hashedPassword = bcrypt.hashSync(password, 10)
   // if email or password is missing
   if (!email || !password) {
     res.status(400).json({message: 'Please enter an email/password'})
@@ -220,25 +217,20 @@ app.post('/register', (req,res)=>{
   } else if (emailAlreadyExists(usersDatabase, email)) {
     res.status(400).json({message: 'Email is already in the system'})
   } else {
-
     const userID = generateRandomString();
     const storeuser = {
       id: userID, 
       email: email,
-      password: password,
+      password: hashedPassword,
     }
 
-  //this adds the new user to the global users object 
-  usersDatabase[userID] = storeuser 
-  //console.log(storeuser)
-  console.log(usersDatabase)
-  
-  // setting a user_id cookie containing the user's newly generated ID 
-  //res.cookie(name, value)
-  res.cookie("user_id", storeuser.id)
-  res.redirect("/urls")
-  }
-})
+    usersDatabase[userID] = storeuser
+    console.log("Users Database >>  ", usersDatabase)
+
+    res.cookie("user_id", storeuser.id)
+    res.redirect("/urls")
+    };
+  });
 
 //setting up the listener -------------------------------------------------------
 app.listen(PORT, () => {
