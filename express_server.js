@@ -2,6 +2,8 @@ const express = require ('express');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
+//const request = require('request');
+const { emailAlreadyExists, getUserByEmail, urlsForUser } = require('./helpers');
 
 
 // SERVER SETUP --------------------------------------
@@ -37,45 +39,12 @@ const usersDatabase = {
   }
 }
 
-// FUNCTIONS -------------------------------------------------------
 
 //function to generate a random alphanumeric 6 character string 
 function generateRandomString () {
   return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
 }
 
-// function to check if email already exists
-const emailAlreadyExists = (database, newEmail) => {
-  for (key in database) {
-    if (database[key]["email"] === newEmail) {
-      return true
-    }
-  }
-  return false; 
-};
-
-  //function to grab the userID for an existing email 
-  const getUserByEmail = (database, logInEmail)=> {
-    for (key in database){
-    if (database[key]["email"] === logInEmail) {
-      return key
-    }
-  }
-  };
-
-  //function to grab the urls from userID
-
-  const urlsForUser = (database, id) => {
-    let result = {}; 
-
-    for (let shortUrl in database) {
-      if (database[shortUrl].userID === id) {
-      result[shortUrl] = database[shortUrl]
-    }
-  }
-  
-  return result;
-}
 
 // ROUTES --------------------------------------
 
