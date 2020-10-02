@@ -15,7 +15,11 @@
   </header>
 
   <body>
-
+    <% if(redirect) { %>
+      <div class="alert alert-primary" role="alert">
+         Sorry, you don't have access to that page. Please log-in.
+        </div>
+         <% } %>
     <main style="margin: 1em;">
       <h3>Log In Form</h3>
       <form action="/login" method="POST">

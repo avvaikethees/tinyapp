@@ -92,18 +92,25 @@ app.get('/register', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  const templateVars = {userID: null};
+  console.log(req.query)
+
+
+  const templateVars = {userID: null, redirect: req.query.redirect || false};
   res.render('urls_login', templateVars);
 });
 
 app.get('/urls/:shortURL', (req, res)=> {
-  
-  const shortURL = req.params.shortURL;
   const userID = req.session.user_id;
+  if (!userID) {
+    res.redirect("/login?redirect=true");
+  }
+
+  const shortURL = req.params.shortURL;
   const userUrlDatabase = urlsForUser(urlDatabase, userID);
   
+
   if (shortURL in userUrlDatabase) {
-    const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userID: req.session.user_id, user: usersDatabase[userID]};
+    const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userID: req.session.user_id, user: usersDatabase[userID] || null};
     res.render("urls_show", templateVars);
   } else {
     res.status(404). send(`Whoops! Check again, TinyURL ${shortURL} doesn't exist`);
