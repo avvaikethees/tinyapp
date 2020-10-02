@@ -1,6 +1,6 @@
 const express = require ('express');
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 
@@ -12,7 +12,11 @@ app.set("view engine", "ejs");
 
 //MIDDLEWARE --------------------------------------
 app.use(bodyParser.urlencoded({extended: true}))
-app.use(cookieParser())
+//app.use(cookieParser())
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2'],
+}))
 
 //DATA --------------------------------------
 const urlDatabase = {
@@ -41,9 +45,9 @@ function generateRandomString () {
 }
 
 // function to check if email already exists
-const emailAlreadyExists = (usersDatabase, newEmail) => {
-  for (key in usersDatabase) {
-    if (usersDatabase[key]["email"] === newEmail) {
+const emailAlreadyExists = (database, newEmail) => {
+  for (key in database) {
+    if (database[key]["email"] === newEmail) {
       return true
     }
   }
@@ -51,9 +55,9 @@ const emailAlreadyExists = (usersDatabase, newEmail) => {
 };
 
   //function to grab the userID for an existing email 
-  const getUserByEmail = (usersDatabase, logInEmail)=> {
-    for (key in usersDatabase){
-    if (usersDatabase[key]["email"] === logInEmail) {
+  const getUserByEmail = (database, logInEmail)=> {
+    for (key in database){
+    if (database[key]["email"] === logInEmail) {
       return key
     }
   }
@@ -61,12 +65,12 @@ const emailAlreadyExists = (usersDatabase, newEmail) => {
 
   //function to grab the urls from userID
 
-  const urlsForUser = (urlDatabase, id) => {
+  const urlsForUser = (database, id) => {
     let result = {}; 
 
-    for (let shortUrl in urlDatabase) {
-      if (urlDatabase[shortUrl].userID === id) {
-      result[shortUrl] = urlDatabase[shortUrl]
+    for (let shortUrl in database) {
+      if (database[shortUrl].userID === id) {
+      result[shortUrl] = database[shortUrl]
     }
   }
   
@@ -89,15 +93,15 @@ app.get('/hello', (req, res) => {
 })
 
 app.get('/urls', (req, res) => {
-  const userID = req.cookies["user_id"]
+  const userID = req.session.user_id
   const usersURLs = urlsForUser(urlDatabase, userID)
-  const templateVars = { urls: usersURLs, userID: req.cookies["user_id"], user:usersDatabase[userID]};
+  const templateVars = { urls: usersURLs, userID: req.session.user_id, user:usersDatabase[userID]};
   res.render('urls_index', templateVars);
 })
 
 app.get('/urls/new', (req, res) => {
-  let userID = req.cookies["user_id"]
-  const templateVars = {urls: urlDatabase, userID: req.cookies["user_id"], user:usersDatabase[userID]}
+  let userID = req.session.user_id
+  const templateVars = {urls: urlDatabase, userID: req.session.user_id, user:usersDatabase[userID]}
   if (userID) {
     res.render('urls_new', templateVars);
  } else {
@@ -116,8 +120,8 @@ app.get('/login', (req, res) => {
 })
 
 app.get('/urls/:shortURL', (req, res)=> {
-  const userID = req.cookies["user_id"]
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userID: req.cookies["user_id"], user: usersDatabase[userID]};
+  const userID = req.session.user_id
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userID: req.session.user_id, user: usersDatabase[userID]};
   //console.log(templateVars)
   res.render("urls_show", templateVars);
 })
@@ -132,7 +136,7 @@ app.get('/u/:shortURL', (req, res) => {
 app.post("/urls", (req, res) => {
   const longBodyURL = req.body.longURL;
   const shortURL = generateRandomString();
-  const userID = req.cookies["user_id"]
+  const userID = req.session.user_id
   urlDatabase[shortURL] = { longURL: longBodyURL, userID: userID };
   //console.log(req.body);
   console.log(urlDatabase)
@@ -142,7 +146,7 @@ app.post("/urls", (req, res) => {
 //** what happens after you click on that delete button **
 app.post("/urls/:shortURL/delete", (req, res) => {
 
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     return res.status(404).send("Need to be logged in");
   }
 
@@ -157,7 +161,7 @@ app.post("/urls/:shortURL", (req, res) => {
   console.log("Post request fired")
   const longBodyURL = req.body.newURL
   const shortURL = req.params.shortURL
-  const userID = req.cookies["user_id"]
+  const userID = req.session.user_id
   const usersURLs = urlsForUser(urlDatabase, userID );
 
   if (!(shortURL in usersURLs)) {
@@ -185,7 +189,7 @@ app.post('/login', (req, res) => {
 
     if (bcrypt.compareSync(password, usersDatabase[user].password)) {
       //let getuserID = getUserByEmail(usersDatabase, email)
-      res.cookie("user_id", user)
+      req.session.user_id =  user
       res.redirect("/urls")
     } else {
       res.status(403).json({message: "Incorrect password"})
@@ -198,7 +202,7 @@ app.post('/login', (req, res) => {
 
 // ** What happens when you click on the logout button **
 app.post('/logout', (req, res) => {
-  res.clearCookie("user_id")
+  req.session = null; 
   res.redirect("/urls")
 })
 
@@ -227,7 +231,7 @@ app.post('/register', (req,res)=>{
     usersDatabase[userID] = storeuser
     console.log("Users Database >>  ", usersDatabase)
 
-    res.cookie("user_id", storeuser.id)
+    req.session.user_id = storeuser.id
     res.redirect("/urls")
     };
   });
